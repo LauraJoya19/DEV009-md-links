@@ -2,8 +2,8 @@
 const { mdLinks } = require('./md-links.js');
 
 mdLinks('./rutas.md/')
-    .then(() => {
-
+    .then((resolve) => {
+        console.log(resolve);
     })
     .catch((error) => {
         console.log(error);
