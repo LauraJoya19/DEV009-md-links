@@ -1,31 +1,36 @@
 const fs = require("fs");
 const path = require('path');
 const extMarkdown = ['.md', '.mkd', '.mdwn', '.mdown', '.mdtxt', '.mdtext', '.markdown', '.text'];
-const { fileContent, extractLinks } = require('./data.js');
-const markdownIt = require('markdown-it')();
+const { fileContent, extractLinks, linksValidate } = require('./data.js');
 
-const mdLinks = (routes, options) => {
+const mdLinks = (filePath, options = {}) => {
   return new Promise((resolve, reject) => {
-    let verRuta = routes;
-    console.log(verRuta);
-    if (!path.isAbsolute(routes)) {
-      verRuta = path.resolve(routes);
+    // Verifica si la ruta es absoluta o la convierte en absoluta
+    let verRuta = filePath;
+    if (!path.isAbsolute(filePath)) {
+      verRuta = path.resolve(filePath);
+      console.log("Ruta absoluta: ", verRuta);
     }
-    console.log("Ruta absoluta: ", verRuta);
 
     if (fs.existsSync(verRuta)) {
-      console.log("La ruta existe");
-
       const extension = path.extname(verRuta).toLowerCase();
       if (extMarkdown.includes(extension)) {
         console.log("Es un archivo Markdown");
-
         fileContent(verRuta)
           .then((archivoLeido) => {
-            console.log(archivoLeido)
             extractLinks(archivoLeido, verRuta)
               .then((links) => {
-                resolve(links);
+                if (options && options.validate) {
+                  linksValidate(links)
+                    .then((linksValidados) => {
+                      resolve(linksValidados);
+                    })
+                    .catch((error) => {
+                      reject(error);
+                    });
+                } else {
+                  resolve(links);
+                }
               })
               .catch((error) => {
                 reject(error);
@@ -41,8 +46,8 @@ const mdLinks = (routes, options) => {
       reject("La ruta no existe");
     }
   });
-}
+};
 
 module.exports = {
   mdLinks,
-}
+};

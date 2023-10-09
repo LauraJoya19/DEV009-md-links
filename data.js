@@ -2,8 +2,9 @@
 
 const fs = require('fs');
 const MarkdownIt = require('markdown-it');
+const axios = require("axios");
+const path = require('path');
 
-// Leer el archivo
 function fileContent(absolutePath) {
   return new Promise((resolve, reject) => {
     fs.readFile(absolutePath, 'utf8', (err, archivoLeido) => {
@@ -38,5 +39,33 @@ function extractLinks(archivoLeido, absolutePath) {
   })
 }
 
+function linksValidate(links) {
+  return new Promise((resolve) => {
+    const resultValidate = links.map(link => {
+      return axios.get(link.href)
+        .then(function (response) {
+          return {
+            ...link,
+            status: response.status,
+            ok: 'ok'
+          };
+        })
+        .catch(function (error) {
+          return {
+            ...link,
+            status: error.response ? error.response.status : 404,
+            ok: "fail",
+          };
+        });
+    });
 
-module.exports = { fileContent, extractLinks, };
+   
+
+    Promise.all(resultValidate).then((linksValidados) => {
+      resolve(linksValidados);
+    });
+  });
+}
+
+
+module.exports = { fileContent, extractLinks, linksValidate};
