@@ -1,12 +1,21 @@
-// ejecutar el node
-const { mdLinks } = require('./md-links');
-const filePath = './rutas.md';
-const options = { validate: true }; 
+#!/usr/bin/env node
+const { mdLinks } = require('./md-links.js');
+const { stats } = require('./data.js');
 
-mdLinks(filePath, options)
+const path = process.argv[2];
+const validate = process.argv.includes('--validate');
+const statsLinks = process.argv.includes('--stats');
+
+
+mdLinks(path, validate)
   .then((links) => {
-    console.log(links);
+    if (statsLinks) {
+      console.log(stats(links, validate));
+    } else {
+      console.log(links);
+    }
+
   })
   .catch((error) => {
-    console.error(error);
+    console.log(error);
   });

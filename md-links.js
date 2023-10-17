@@ -1,53 +1,62 @@
-const fs = require("fs");
+const fs = require('fs');
 const path = require('path');
-const extMarkdown = ['.md', '.mkd', '.mdwn', '.mdown', '.mdtxt', '.mdtext', '.markdown', '.text'];
-const { fileContent, extractLinks, linksValidate } = require('./data.js');
+const { linksValidate, extMarkdown, processFile, readDirectories } = require('./data.js'); 
 
-const mdLinks = (filePath, options = {}) => {
+const mdLinks = (filePath, validate) => {
   return new Promise((resolve, reject) => {
-    // Verifica si la ruta es absoluta o la convierte en absoluta
-    let verRuta = filePath;
-    if (!path.isAbsolute(filePath)) {
-      verRuta = path.resolve(filePath);
-      console.log("Ruta absoluta: ", verRuta);
+    const absolutePath = path.resolve(filePath);
+    if (!fs.existsSync(absolutePath)) {
+      reject('La ruta no existe');
     }
-
-    if (fs.existsSync(verRuta)) {
-      const extension = path.extname(verRuta).toLowerCase();
-      if (extMarkdown.includes(extension)) {
-        console.log("Es un archivo Markdown");
-        fileContent(verRuta)
-          .then((archivoLeido) => {
-            extractLinks(archivoLeido, verRuta)
-              .then((links) => {
-                if (options && options.validate) {
-                  linksValidate(links)
-                    .then((linksValidados) => {
-                      resolve(linksValidados);
-                    })
-                    .catch((error) => {
-                      reject(error);
-                    });
-                } else {
-                  resolve(links);
-                }
-              })
-              .catch((error) => {
-                reject(error);
-              });
-          })
-          .catch((error) => {
-            reject(error);
-          });
-      } else {
-        reject("No es un archivo Markdown");
+    const stats = fs.statSync(absolutePath);
+    if (stats.isDirectory()) {
+      const archivosDirectorio = readDirectories(absolutePath);
+      if (archivosDirectorio.length === 0) {
+        reject('No se encontraron archivos');
       }
+      const filter = archivosDirectorio.filter((file) => {
+        const absolutePathDirectory = path.join(absolutePath, file);
+        return extMarkdown(absolutePathDirectory);
+      });
+      const resultDirectory = filter.map((archivoFiltrado) => {
+        return new Promise((resolve) => {
+          processFile(archivoFiltrado).then((links) => {
+            if(validate) {
+              linksValidate(links).then((linksValidados) => {
+                resolve(linksValidados);
+              })
+            }else{
+              resolve(links);
+            }
+          })
+        })
+
+      })
+      Promise.all(resultDirectory).then((links) => {
+        resolve(links.flat());
+      })
     } else {
-      reject("La ruta no existe");
+      if(extMarkdown(absolutePath)) { 
+        processFile(absolutePath).then((links) => {
+          if(validate) {
+            linksValidate(links).then((linksValidados) => {
+              resolve(linksValidados);
+            })
+          }else{
+            resolve(links);
+          }
+        })
+      } else {
+        reject ('El archivo no es markdown');
+      }
     }
-  });
-};
+  })
+}
+
+
+
+
 
 module.exports = {
   mdLinks,
-};
+}
