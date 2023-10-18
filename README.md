@@ -37,7 +37,7 @@ mdlinks <path-to-file> [options]
 - **path-to-file** : Es la ruta del archivo o directorio a analizar.
 
 - **options** : --validate (Verifica el estado de los links encontrados)     
---stats (Obtienes estadísticas de los enlaces encontrados).
+                --stats (Obtienes estadísticas de los enlaces encontrados).
 
 **Ejemplo**:
 ```
@@ -45,11 +45,13 @@ mdlinks './files/'
 ```
 Con el comando anterior se lee el directorio y se extrae el contenido Markdown
 ![Sin Validar](/imagenes/directorio.JPG)
+
 para validar el estado de los links ingresamos el siguiente comando 
 ```
 mdlinks './files/' --validate
 ``` 
 ![Validate](/imagenes/validate.JPG)
+
 para ver estadisticas de los links encontrados en el directorio ingresamos el siguiente comando 
 ```
 mdlinks './files/' --stats
