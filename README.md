@@ -57,9 +57,12 @@ para ver estadisticas de los links encontrados en el directorio ingresamos el si
 mdlinks './files/' --stats
 ``` 
 ![stats](/imagenes/stats.JPG)
+
 utilizando el siguiente comando podemos combinar las dos opciones
 ```
 mdlinks './files/' --validate --stats
 ``` 
+
 al combinar las opciones, se añade al resultado la propiedad Broken la cual nos muestra si hay algun link roto o dañado.
+
 ![Link roto](/imagenes/broken.JPG)
